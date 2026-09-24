@@ -68,7 +68,15 @@ class MIIBlockchain:
     def mii_valid_proof(mii_last_proof, mii_proof):
         mii_guess = f'{mii_last_proof}{mii_proof}'.encode()
         mii_guess_hash = hashlib.sha256(mii_guess).hexdigest()
-        return mii_guess_hash[-2:] == "10"
+
+        is_valid = mii_guess_hash[-2:] == "10"
+
+        if is_valid:
+            print("Proof: " + str(mii_proof))
+            print("Хеш: " + mii_guess_hash)
+            return True
+
+        return False
 
     @staticmethod
     def mii_hash(mii_blok):

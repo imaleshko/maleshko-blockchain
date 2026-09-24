@@ -1,3 +1,5 @@
+import json
+
 from mii_blockchain import MIIBlockchain
 
 
@@ -15,9 +17,13 @@ def mii_run():
 
         match mii_choice:
             case '1':
-                sender = input("Введіть адресу відправника: ")
-                recipient = input("Введіть адресу отримувача: ")
-                amount = float(input("Введіть суму: "))
+                try:
+                    sender = input("Введіть адресу відправника: ")
+                    recipient = input("Введіть адресу отримувача: ")
+                    amount = float(input("Введіть суму: "))
+                except ValueError:
+                    print("Сума повинна бути числом")
+                    continue
                 blockchain.mii_new_transaction(sender, recipient, amount)
                 print("Транзакція успішно проведена")
 
@@ -30,11 +36,11 @@ def mii_run():
                 if not current_transaction:
                     print("Мемпул порожній")
                 else:
-                    print(blockchain.mii_current_transactions)
+                    print(json.dumps(blockchain.mii_current_transactions, indent=4))
             case '3':
-                print(blockchain.mii_last_block)
+                print(json.dumps(blockchain.mii_last_block, indent=4))
             case '4':
-                print(blockchain.mii_chain)
+                print(json.dumps(blockchain.mii_chain, indent=4))
             case '5':
                 break
             case _:
