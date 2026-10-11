@@ -26,7 +26,7 @@ def mii_new_transaction():
 def mii_mine():
     last_proof = blockchain.mii_last_block_proof
     proof = blockchain.mii_proof_of_work(last_proof)
-    blockchain.mii_new_transaction(sender="0", recipient=node_identifier, amount=1)
+    blockchain.mii_new_transaction("0", node_identifier, 15)
     previous_hash = blockchain.mii_last_block_hash
     block = blockchain.mii_new_block(previous_hash, proof)
     response = {
