@@ -47,3 +47,34 @@ def mii_chain():
         'length': len(blockchain.mii_chain)
     }
     return response
+
+
+@app.post('/nodes/register')
+def mii_register_nodes():
+    values = request.get_json()
+    nodes = values.get('nodes')
+    if nodes is None:
+        return "Помилка: надайте список вузлів", 400
+    for node in nodes:
+        blockchain.mii_register_node(node)
+    response = {
+        'message': 'Додано нові вузли',
+        'total_nodes': list(blockchain.mii_nodes)
+    }
+    return response, 201
+
+
+@app.get('/nodes/resolve')
+def mii_consensus():
+    replaced = blockchain.mii_resolve_conflict()
+    if replaced:
+        response = {
+            'message': 'Наш ланцюг було замінено',
+            'new_chain': blockchain.mii_chain
+        }
+    else:
+        response = {
+            'message': 'Наш ланцюг залишився',
+            'chain': blockchain.mii_chain
+        }
+    return response, 200
