@@ -30,7 +30,7 @@ def mii_mine():
     previous_hash = blockchain.mii_last_block_hash
     block = blockchain.mii_new_block(previous_hash, proof)
     response = {
-        'message': f'New Block Forged',
+        'message': 'Створено новий блок',
         'index': block['index'],
         'transactions': block['transactions'],
         'merkle_root': block['merkle_root'],
@@ -56,7 +56,7 @@ def mii_register_nodes():
     if nodes is None:
         return "Помилка: надайте список вузлів", 400
     for node in nodes:
-        blockchain.mii_register_node(node)
+        blockchain.mii_register_node(node, current_node_url=request.url_root)
     response = {
         'message': 'Додано нові вузли',
         'total_nodes': list(blockchain.mii_nodes)

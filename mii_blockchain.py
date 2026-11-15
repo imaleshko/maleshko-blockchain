@@ -2,6 +2,7 @@ import hashlib
 import json
 from time import time
 from urllib.parse import urlparse
+from uuid import uuid4
 
 import requests
 
@@ -49,6 +50,7 @@ class MIIBlockchain:
 
     def mii_new_transaction(self, sender, recipient, amount):
         self._mii_current_transactions.append({
+            'id': str(uuid4()),
             'sender': sender,
             'recipient': recipient,
             'amount': amount
@@ -92,24 +94,66 @@ class MIIBlockchain:
             proof += 1
         return proof
 
-    def mii_register_node(self, address):
+    def mii_register_node(self, address, current_node_url):
         parsed_url = urlparse(address)
-        self._mii_nodes.add(parsed_url.netloc)
+
+        if parsed_url.netloc == urlparse(current_node_url).netloc:
+            return
+
+        if parsed_url.netloc not in self._mii_nodes:
+            self._mii_nodes.add(parsed_url.netloc)
+
+            target_url = f"http://{parsed_url.netloc}/nodes/register"
+            try:
+                requests.post(
+                    target_url,
+                    json={"nodes": [current_node_url]},
+                    timeout=3,
+                )
+            except requests.RequestException:
+                pass
 
     def mii_resolve_conflict(self):
         neighbours = self._mii_nodes
         new_chain = None
         max_length = len(self._mii_chain)
         for node in neighbours:
-            response = requests.get(f"http://{node}/chain")
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
-                if length > max_length and self.mii_valid_chain(chain):
-                    max_length = length
-                    new_chain = chain
+            try:
+                response = requests.get(f"http://{node}/chain", timeout=3)
+                if response.status_code == 200:
+                    length = response.json()['length']
+                    chain = response.json()['chain']
+                    if length > max_length and self.mii_valid_chain(chain):
+                        max_length = length
+                        new_chain = chain
+            except requests.RequestException:
+                continue
 
         if new_chain:
+            confirmed_transactions_ids = {
+                transaction['id']
+                for block in new_chain[1:]
+                for transaction in block['transactions']
+            }
+
+            self._mii_current_transactions = [
+                transaction for transaction in self._mii_current_transactions
+                if transaction['id'] not in confirmed_transactions_ids
+            ]
+
+            mempool_transactions_ids = {
+                transaction['id'] for transaction in self._mii_current_transactions
+            }
+
+            for block in self._mii_chain[1:]:
+                for transaction in block['transactions']:
+                    if transaction['sender'] == "0":
+                        continue
+                    if transaction['id'] not in confirmed_transactions_ids and transaction[
+                        'id'] not in mempool_transactions_ids:
+                        self._mii_current_transactions.append(transaction)
+                        mempool_transactions_ids.add(transaction['id'])
+
             self._mii_chain = new_chain
             return True
 

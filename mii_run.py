@@ -32,11 +32,11 @@ def mii_run():
                                              blockchain.mii_proof_of_work(blockchain.mii_last_block_proof))
                     print("Згенеровано новий блок")
             case '2':
-                current_transaction = blockchain.mii_current_transactions
-                if not current_transaction:
+                current_transactions = blockchain.mii_current_transactions
+                if not current_transactions:
                     print("Мемпул порожній")
                 else:
-                    print(json.dumps(blockchain.mii_current_transactions, indent=4))
+                    print(json.dumps(current_transactions, indent=4))
             case '3':
                 print(json.dumps(blockchain.mii_last_block, indent=4))
             case '4':
